@@ -17,7 +17,7 @@ namespace FFXIVPingMachina.PingMonitor.handler
             //            Console.Out.WriteLine($"KeepAliveHandler.ClientSent: ID={pkt.Id}, Timestamp={pkt.Timestamp}.");
 
             _currentId = pkt.Id;
-            _lastKeepAliveSent = DateTime.Now;
+            _lastKeepAliveSent = DateTime.UtcNow;
         }
 
         public void ClientRecv(byte[] data, int offset)
@@ -30,7 +30,7 @@ namespace FFXIVPingMachina.PingMonitor.handler
             {
                 return;
             }
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
             var millis = (now - _lastKeepAliveSent).TotalMilliseconds;
             OnPingSample?.Invoke(millis, now);
         }

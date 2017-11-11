@@ -25,7 +25,7 @@ namespace FFXIVPingMachina.PingMonitor
 
         public void MessageSent(long epoch, byte[] message)
         {
-            LastActivity = DateTime.Now;
+            LastActivity = DateTime.UtcNow;
             //           Console.Out.WriteLine("MessageSent");
 
             var headerLen = Packets.ParseSegmentHeader(message, 0, out var segHdr);
@@ -44,7 +44,7 @@ namespace FFXIVPingMachina.PingMonitor
 
         public void MessageReceived(long epoch, byte[] message)
         {
-            LastActivity = DateTime.Now;
+            LastActivity = DateTime.UtcNow;
             //           Console.Out.WriteLine("MessageReceived");
 
             var headerLen = Packets.ParseSegmentHeader(message, 0, out var segHdr);

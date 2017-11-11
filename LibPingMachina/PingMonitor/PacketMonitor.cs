@@ -63,7 +63,7 @@ namespace FFXIVPingMachina.PingMonitor
 
         private void CheckActivity()
         {
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
             _connections.Where(it => now.Subtract(it.Value.LastActivity).TotalMinutes > 2)
                 .Select(it => it.Key).ToList().ForEach(k => _connections.Remove(k));
         }

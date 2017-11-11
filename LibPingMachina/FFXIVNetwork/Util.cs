@@ -71,11 +71,11 @@ namespace FFXIVPingMachina.FFXIVNetwork
             }
         }
 
-        private static readonly long _dt1970 = new DateTime(1970, 1, 1).Ticks;
+        private static readonly long _dt1970 = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).Ticks;
 
         public static long EpochMillis(this DateTime t)
         {
-            var unixTimestamp = t.Ticks - _dt1970;
+            var unixTimestamp = t.ToUniversalTime().Ticks - _dt1970;
             unixTimestamp /= TimeSpan.TicksPerMillisecond;
             return unixTimestamp;
         }

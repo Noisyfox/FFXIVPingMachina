@@ -10,7 +10,7 @@ namespace FFXIVPingMachina.PingMonitor.handler
         public event PingSampleDelegate OnPingSample;
 
         private readonly SortedDictionary<uint, DateTime> _pingRecords = new SortedDictionary<uint, DateTime>();
-        private DateTime _pingLastUpdate = DateTime.Now;
+        private DateTime _pingLastUpdate = DateTime.UtcNow;
 
         public void ClientSent(byte[] data, int offset)
         {
@@ -46,7 +46,7 @@ namespace FFXIVPingMachina.PingMonitor.handler
             Packets.NaiveParsePacket<FFXIVClientIpcPingData>(data, offset, out var pkt);
             //            Console.Out.WriteLine($"HandleClientPing: Timestamp={pkt.Timestamp}.");
 
-            _pingRecords[pkt.Timestamp] = DateTime.Now;
+            _pingRecords[pkt.Timestamp] = DateTime.UtcNow;
         }
 
         private void HandleServerPing(byte[] data, int offset)
@@ -59,7 +59,7 @@ namespace FFXIVPingMachina.PingMonitor.handler
 
             if (_pingRecords.TryGetValue(index, out var time))
             {
-                var now = DateTime.Now;
+                var now = DateTime.UtcNow;
                 var millis = (now - time).TotalMilliseconds;
                 OnPingSample?.Invoke(millis, now);
                 _pingRecords.Remove(index);
