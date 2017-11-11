@@ -31,7 +31,8 @@ namespace FFXIVPingMachina
 
     public class PacketMonitor
     {
-        private readonly Dictionary<string, PerConnectionMonitor> _connections = new Dictionary<string, PerConnectionMonitor>();
+        private readonly Dictionary<string, PerConnectionMonitor> _connections =
+            new Dictionary<string, PerConnectionMonitor>();
 
         public void MessageSent(string connection, long epoch, byte[] message)
         {
@@ -48,6 +49,10 @@ namespace FFXIVPingMachina
             catch (ParseException ex)
             {
                 Console.Out.WriteLine(ex.ToString());
+            }
+            finally
+            {
+                CheckActivity();
             }
         }
 
@@ -67,6 +72,17 @@ namespace FFXIVPingMachina
             {
                 Console.Out.WriteLine(ex.ToString());
             }
+            finally
+            {
+                CheckActivity();
+            }
+        }
+
+        private void CheckActivity()
+        {
+            var now = DateTime.Now;
+            _connections.Where(it => now.Subtract(it.Value.LastActivity).TotalMinutes > 2)
+                .Select(it => it.Key).ToList().ForEach(k => _connections.Remove(k));
         }
     }
 
