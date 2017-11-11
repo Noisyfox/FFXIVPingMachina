@@ -31,27 +31,19 @@ namespace FFXIVPingMachina
 
     public class PacketMonitor
     {
-        private readonly KeepAliveHandler _keepAliveHandler = new KeepAliveHandler();
-        private readonly IPCHandler _ipcHandler = new IPCHandler();
+        private readonly Dictionary<string, PerConnectionMonitor> _connections = new Dictionary<string, PerConnectionMonitor>();
 
-        public void MessageSent(long epoch, byte[] message)
+        public void MessageSent(string connection, long epoch, byte[] message)
         {
+            if (!_connections.TryGetValue(connection, out var monitor))
+            {
+                monitor = new PerConnectionMonitor();
+                _connections[connection] = monitor;
+            }
+
             try
             {
-//                Console.Out.WriteLine("MessageSent");
-
-                var headerLen = Packets.ParseSegmentHeader(message, 0, out var segHdr);
-//                Console.Out.WriteLine($"segHdr.SegmentType = 0x{segHdr.SegmentType:X4}.");
-
-                switch ((ClientSegmentType) segHdr.SegmentType)
-                {
-                    case ClientSegmentType.KeepAlive:
-                        _keepAliveHandler.ClientSent(message, headerLen);
-                        break;
-                    case ClientSegmentType.IPC:
-                        _ipcHandler.ClientSent(message, headerLen);
-                        break;
-                }
+                monitor.MessageSent(epoch, message);
             }
             catch (ParseException ex)
             {
@@ -59,28 +51,66 @@ namespace FFXIVPingMachina
             }
         }
 
-        public void MessageReceived(long epoch, byte[] message)
+        public void MessageReceived(string connection, long epoch, byte[] message)
         {
+            if (!_connections.TryGetValue(connection, out var monitor))
+            {
+                monitor = new PerConnectionMonitor();
+                _connections[connection] = monitor;
+            }
+
             try
             {
-//                Console.Out.WriteLine("MessageReceived");
-
-                var headerLen = Packets.ParseSegmentHeader(message, 0, out var segHdr);
-//                Console.Out.WriteLine($"segHdr.SegmentType = 0x{segHdr.SegmentType:X4}.");
-
-                switch ((ServerSegmentType) segHdr.SegmentType)
-                {
-                    case ServerSegmentType.KeepAlive:
-                        _keepAliveHandler.ClientRecv(message, headerLen);
-                        break;
-                    case ServerSegmentType.IPC:
-                        _ipcHandler.ClientRecv(message, headerLen);
-                        break;
-                }
+                monitor.MessageReceived(epoch, message);
             }
             catch (ParseException ex)
             {
                 Console.Out.WriteLine(ex.ToString());
+            }
+        }
+    }
+
+    public class PerConnectionMonitor
+    {
+        public DateTime LastActivity { get; private set; }
+        private readonly KeepAliveHandler _keepAliveHandler = new KeepAliveHandler();
+        private readonly IPCHandler _ipcHandler = new IPCHandler();
+
+        public void MessageSent(long epoch, byte[] message)
+        {
+            LastActivity = DateTime.Now;
+//           Console.Out.WriteLine("MessageSent");
+
+            var headerLen = Packets.ParseSegmentHeader(message, 0, out var segHdr);
+//           Console.Out.WriteLine($"segHdr.SegmentType = 0x{segHdr.SegmentType:X4}.");
+
+            switch ((ClientSegmentType) segHdr.SegmentType)
+            {
+                case ClientSegmentType.KeepAlive:
+                    _keepAliveHandler.ClientSent(message, headerLen);
+                    break;
+                case ClientSegmentType.IPC:
+                    _ipcHandler.ClientSent(message, headerLen);
+                    break;
+            }
+        }
+
+        public void MessageReceived(long epoch, byte[] message)
+        {
+            LastActivity = DateTime.Now;
+//           Console.Out.WriteLine("MessageReceived");
+
+            var headerLen = Packets.ParseSegmentHeader(message, 0, out var segHdr);
+//           Console.Out.WriteLine($"segHdr.SegmentType = 0x{segHdr.SegmentType:X4}.");
+
+            switch ((ServerSegmentType) segHdr.SegmentType)
+            {
+                case ServerSegmentType.KeepAlive:
+                    _keepAliveHandler.ClientRecv(message, headerLen);
+                    break;
+                case ServerSegmentType.IPC:
+                    _ipcHandler.ClientRecv(message, headerLen);
+                    break;
             }
         }
     }
