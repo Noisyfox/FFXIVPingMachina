@@ -237,5 +237,41 @@ namespace FFXIVPingMachina.FFXIVNetwork.Packets
 
         ReturnEventHandler = 0x0128,
         TradeReturnEventHandler = 0x0129,
-    };
+    }
+
+    /**
+    * Structural representation of the Ping packate data send by client.
+    *
+    * 0               4                 24
+    * +---------------+-----------------+
+    * |   timestamp   |  unknown_zero   |
+    * +---------------+-----------------+
+    */
+    [StructLayout(LayoutKind.Explicit, Size = 24)]
+    public struct FFXIVClientIpcPingData
+    {
+        [FieldOffset(0)]
+        public uint Timestamp;
+        [FieldOffset(4)]
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 20)]
+        public byte[] Unknown;
+    }
+
+    /**
+    * Structural representation of the Ping packate data send by server.
+    *
+    * 0               8                 32
+    * +---------------+-----------------+
+    * |   timestamp   |  unknown_zero   |
+    * +---------------+-----------------+
+    */
+    [StructLayout(LayoutKind.Explicit, Size = 32)]
+    public struct FFXIVServerIpcPingData
+    {
+        [FieldOffset(0)]
+        public ulong Timestamp;
+        [FieldOffset(8)]
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 24)]
+        public byte[] Unknown;
+    }
 }

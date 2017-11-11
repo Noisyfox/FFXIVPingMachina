@@ -32,64 +32,71 @@ namespace FFXIVPingMachina
     public class PacketMonitor
     {
         private readonly KeepAliveHandler _keepAliveHandler = new KeepAliveHandler();
+        private readonly IPCHandler _ipcHandler = new IPCHandler();
 
         public void MessageSent(long epoch, byte[] message)
         {
-            Console.Out.WriteLine("MessageSent");
-
-            var segHdr = new FFXIVSegmentHeader();
-            var result = Packets.ParseSegmentHeader(message, 0, ref segHdr);
-
-            if (result < 0)
+            try
             {
-                var r = (PacketParseResult)result;
-                Console.Out.WriteLine($"ParseSegmentHeader failed, result = {r}.");
-                return;
+//                Console.Out.WriteLine("MessageSent");
+
+                var headerLen = Packets.ParseSegmentHeader(message, 0, out var segHdr);
+//                Console.Out.WriteLine($"segHdr.SegmentType = 0x{segHdr.SegmentType:X4}.");
+
+                switch ((ClientSegmentType) segHdr.SegmentType)
+                {
+                    case ClientSegmentType.KeepAlive:
+                        _keepAliveHandler.ClientSent(message, headerLen);
+                        break;
+                    case ClientSegmentType.IPC:
+                        _ipcHandler.ClientSent(message, headerLen);
+                        break;
+                }
             }
-            Console.Out.WriteLine($"segHdr.SegmentType = 0x{segHdr.SegmentType:X4}.");
-
-            switch ((ClientSegmentType)segHdr.SegmentType)
+            catch (ParseException ex)
             {
-                case ClientSegmentType.KeepAlive:
-                    _keepAliveHandler.ClientSent(message, result);
-                    break;
+                Console.Out.WriteLine(ex.ToString());
             }
         }
 
         public void MessageReceived(long epoch, byte[] message)
         {
-            Console.Out.WriteLine("MessageReceived");
-
-            var segHdr = new FFXIVSegmentHeader();
-            var result = Packets.ParseSegmentHeader(message, 0, ref segHdr);
-
-            if (result < 0)
+            try
             {
-                var r = (PacketParseResult)result;
-                Console.Out.WriteLine($"ParseSegmentHeader failed, result = {r}.");
-                return;
+//                Console.Out.WriteLine("MessageReceived");
+
+                var headerLen = Packets.ParseSegmentHeader(message, 0, out var segHdr);
+//                Console.Out.WriteLine($"segHdr.SegmentType = 0x{segHdr.SegmentType:X4}.");
+
+                switch ((ServerSegmentType) segHdr.SegmentType)
+                {
+                    case ServerSegmentType.KeepAlive:
+                        _keepAliveHandler.ClientRecv(message, headerLen);
+                        break;
+                    case ServerSegmentType.IPC:
+                        _ipcHandler.ClientRecv(message, headerLen);
+                        break;
+                }
             }
-            Console.Out.WriteLine($"segHdr.SegmentType = 0x{segHdr.SegmentType:X4}.");
-
-            switch ((ServerSegmentType)segHdr.SegmentType)
+            catch (ParseException ex)
             {
-                case ServerSegmentType.KeepAlive:
-                    _keepAliveHandler.ClientRecv(message, result);
-                    break;
+                Console.Out.WriteLine(ex.ToString());
             }
         }
     }
 
+    #region Handlers
+
     public class KeepAliveHandler
     {
-        private uint _currentId = 0;
+        private uint _currentId;
         private DateTime _lastKeepAliveSent = DateTime.Now;
 
         public void ClientSent(byte[] data, int offset)
         {
-            Console.Out.WriteLine($"KeepAliveHandler.ClientSent: {Utility.ByteArrayToHexString(data, offset)}.");
-            var pkt = Util.ByteArrayToStructure<FFXIVKeepAliveData>(data, offset);
-            Console.Out.WriteLine($"KeepAliveHandler.ClientSent: ID={pkt.Id}, Timestamp={pkt.Timestamp}.");
+//            Console.Out.WriteLine($"KeepAliveHandler.ClientSent: {Utility.ByteArrayToHexString(data, offset)}.");
+            Packets.NaiveParsePacket<FFXIVKeepAliveData>(data, offset, out var pkt);
+//            Console.Out.WriteLine($"KeepAliveHandler.ClientSent: ID={pkt.Id}, Timestamp={pkt.Timestamp}.");
 
             _currentId = pkt.Id;
             _lastKeepAliveSent = DateTime.Now;
@@ -97,9 +104,9 @@ namespace FFXIVPingMachina
 
         public void ClientRecv(byte[] data, int offset)
         {
-            Console.Out.WriteLine($"KeepAliveHandler.ClientRecv: {Utility.ByteArrayToHexString(data, offset)}.");
-            var pkt = Util.ByteArrayToStructure<FFXIVKeepAliveData>(data, offset);
-            Console.Out.WriteLine($"KeepAliveHandler.ClientSent: ID={pkt.Id}, Timestamp={pkt.Timestamp}.");
+//            Console.Out.WriteLine($"KeepAliveHandler.ClientRecv: {Utility.ByteArrayToHexString(data, offset)}.");
+            Packets.NaiveParsePacket<FFXIVKeepAliveData>(data, offset, out var pkt);
+//            Console.Out.WriteLine($"KeepAliveHandler.ClientRecv: ID={pkt.Id}, Timestamp={pkt.Timestamp}.");
 
             if (pkt.Id != _currentId)
             {
@@ -110,4 +117,66 @@ namespace FFXIVPingMachina
             Console.Out.WriteLine($"TTL by KeepAlive={millis}.");
         }
     }
+
+    public class IPCHandler
+    {
+        private readonly SortedDictionary<uint, DateTime> _pingRecords = new SortedDictionary<uint, DateTime>();
+        private DateTime _pingLastUpdate = DateTime.Now;
+
+        public void ClientSent(byte[] data, int offset)
+        {
+//            Console.Out.WriteLine($"IPCHandler.ClientSent: {Utility.ByteArrayToHexString(data, offset)}.");
+            var headerLen = Packets.ParseIPCHeader(data, offset, out var pkt);
+//            Console.Out.WriteLine($"FFXIVIpcHeader.Type = 0x{pkt.Type:X4}.");
+
+            switch ((ClientZoneIpcType) pkt.Type)
+            {
+                case ClientZoneIpcType.PingHandler:
+                    HandleClientPing(data, offset + headerLen);
+                    break;
+            }
+        }
+
+        public void ClientRecv(byte[] data, int offset)
+        {
+//            Console.Out.WriteLine($"IPCHandler.ClientRecv: {Utility.ByteArrayToHexString(data, offset)}.");
+            var headerLen = Packets.ParseIPCHeader(data, offset, out var pkt);
+//            Console.Out.WriteLine($"FFXIVIpcHeader.Type = 0x{pkt.Type:X4}.");
+
+            switch ((ServerZoneIpcType)pkt.Type)
+            {
+                case ServerZoneIpcType.Ping:
+                    HandleServerPing(data, offset + headerLen);
+                    break;
+            }
+        }
+
+        private void HandleClientPing(byte[] data, int offset)
+        {
+//            Console.Out.WriteLine($"Ping sent: {Utility.ByteArrayToHexString(data, offset)}.");
+            Packets.NaiveParsePacket<FFXIVClientIpcPingData>(data, offset, out var pkt);
+//            Console.Out.WriteLine($"HandleClientPing: Timestamp={pkt.Timestamp}.");
+
+            _pingRecords[pkt.Timestamp] = DateTime.Now;
+        }
+
+        private void HandleServerPing(byte[] data, int offset)
+        {
+//            Console.Out.WriteLine($"Pong recv: {Utility.ByteArrayToHexString(data, offset)}.");
+            Packets.NaiveParsePacket<FFXIVServerIpcPingData>(data, offset, out var pkt);
+//            Console.Out.WriteLine($"HandleServerPing: Timestamp={pkt.Timestamp - 0x000014D00000000}.");
+
+            var index = (uint) (pkt.Timestamp - 0x000014D00000000);
+
+            if (_pingRecords.TryGetValue(index, out var time))
+            {
+                var millis = (DateTime.Now - time).TotalMilliseconds;
+                Console.Out.WriteLine($"TTL by Ping={millis}.");
+                _pingRecords.Remove(index);
+            }
+            _pingRecords.Keys.Where(it => it < index).ToList().ForEach(it => _pingRecords.Remove(it));
+        }
+    }
+
+    #endregion
 }
