@@ -70,5 +70,14 @@ namespace FFXIVPingMachina.FFXIVNetwork
                 }
             }
         }
+
+        private static readonly long _dt1970 = new DateTime(1970, 1, 1).Ticks;
+
+        public static long EpochMillis(this DateTime t)
+        {
+            var unixTimestamp = t.Ticks - _dt1970;
+            unixTimestamp /= TimeSpan.TicksPerMillisecond;
+            return unixTimestamp;
+        }
     }
 }
