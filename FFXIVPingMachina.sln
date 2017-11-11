@@ -5,6 +5,10 @@ VisualStudioVersion = 15.0.27004.2008
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FFXIVPingMachina", "FFXIVPingMachina\FFXIVPingMachina.csproj", "{8C6368A6-775F-493E-87FD-0F1E1855D857}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Machina", "machina\Machina\Machina.csproj", "{2681C607-A075-4070-BE13-34F0A395119E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Machina.FFXIV", "machina\Machina.FFXIV\Machina.FFXIV.csproj", "{4303E4F0-4C90-44EB-90C2-691451FE49E7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{8C6368A6-775F-493E-87FD-0F1E1855D857}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8C6368A6-775F-493E-87FD-0F1E1855D857}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8C6368A6-775F-493E-87FD-0F1E1855D857}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2681C607-A075-4070-BE13-34F0A395119E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2681C607-A075-4070-BE13-34F0A395119E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2681C607-A075-4070-BE13-34F0A395119E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2681C607-A075-4070-BE13-34F0A395119E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4303E4F0-4C90-44EB-90C2-691451FE49E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4303E4F0-4C90-44EB-90C2-691451FE49E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4303E4F0-4C90-44EB-90C2-691451FE49E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4303E4F0-4C90-44EB-90C2-691451FE49E7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
