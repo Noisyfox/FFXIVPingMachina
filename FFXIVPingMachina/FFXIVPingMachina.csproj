@@ -52,6 +52,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FFXIVNetwork\Packets\Def.cs" />
+    <Compile Include="FFXIVNetwork\Packets\Packets.cs" />
+    <Compile Include="FFXIVNetwork\Util.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
