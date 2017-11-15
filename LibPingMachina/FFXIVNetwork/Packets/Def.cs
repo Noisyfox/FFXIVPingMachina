@@ -253,8 +253,7 @@ namespace FFXIVPingMachina.FFXIVNetwork.Packets
         [FieldOffset(0)]
         public uint Timestamp;
         [FieldOffset(4)]
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 20)]
-        public byte[] Unknown;
+        unsafe public fixed byte Unknown[20];
     }
 
     /**
@@ -271,7 +270,6 @@ namespace FFXIVPingMachina.FFXIVNetwork.Packets
         [FieldOffset(0)]
         public ulong Timestamp;
         [FieldOffset(8)]
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 24)]
-        public byte[] Unknown;
+        unsafe public fixed byte Unknown[24];
     }
 }
