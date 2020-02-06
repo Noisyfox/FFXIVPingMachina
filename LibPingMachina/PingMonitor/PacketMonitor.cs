@@ -9,6 +9,8 @@ namespace FFXIVPingMachina.PingMonitor
 
     public class PacketMonitor
     {
+        public static FFXIVClientVersion ClientVersion { get; set; } = FFXIVClientVersion.Unknown;
+
         public event PingSampleDelegate OnPingSample;
         public double CurrentPing { get; private set; }
 

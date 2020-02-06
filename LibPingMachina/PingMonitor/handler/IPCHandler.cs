@@ -18,11 +18,9 @@ namespace FFXIVPingMachina.PingMonitor.handler
             var headerLen = Packets.ParseIPCHeader(data, offset, out var pkt);
             //            Console.Out.WriteLine($"FFXIVIpcHeader.Type = 0x{pkt.Type:X4}.");
 
-            switch ((ClientZoneIpcType) pkt.Type)
+            if (pkt.Type == CurrentIpcType.Client.PingHandler)
             {
-                case ClientZoneIpcType.PingHandler:
-                    HandleClientPing(data, offset + headerLen);
-                    break;
+                HandleClientPing(data, offset + headerLen);
             }
         }
 
@@ -32,11 +30,9 @@ namespace FFXIVPingMachina.PingMonitor.handler
             var headerLen = Packets.ParseIPCHeader(data, offset, out var pkt);
             //            Console.Out.WriteLine($"FFXIVIpcHeader.Type = 0x{pkt.Type:X4}.");
 
-            switch ((ServerZoneIpcType) pkt.Type)
+            if (pkt.Type == CurrentIpcType.Server.Ping)
             {
-                case ServerZoneIpcType.Ping:
-                    HandleServerPing(data, offset + headerLen);
-                    break;
+                HandleServerPing(data, offset + headerLen);
             }
         }
 
@@ -65,6 +61,21 @@ namespace FFXIVPingMachina.PingMonitor.handler
                 _pingRecords.Remove(index);
             }
             _pingRecords.Keys.Where(it => it < index).ToList().ForEach(it => _pingRecords.Remove(it));
+        }
+
+        private static ZoneIpcType CurrentIpcType
+        {
+            get
+            {
+                var version = PacketMonitor.ClientVersion;
+                if (version == FFXIVClientVersion.Unknown)
+                {
+                    // Fallback to global version
+                    version = FFXIVClientVersion.Global;
+                }
+
+                return ZoneIpcType.ZoneIpcTypes[version];
+            }
         }
     }
 }
