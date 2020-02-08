@@ -5,7 +5,7 @@ namespace FFXIVPingMachina.PingMonitor.handler
 {
     public class KeepAliveHandler
     {
-        public event PingSampleDelegate OnPingSample;
+        public event PerConnectionMonitor.PingSampleDelegate OnPingSample;
 
         private uint _currentId;
         private DateTime _lastKeepAliveSent = DateTime.Now;

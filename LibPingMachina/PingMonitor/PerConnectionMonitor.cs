@@ -4,21 +4,27 @@ using System.Linq;
 using FFXIVPingMachina.FFXIVNetwork;
 using FFXIVPingMachina.FFXIVNetwork.Packets;
 using FFXIVPingMachina.PingMonitor.handler;
+using LibPingMachina.PingMonitor;
 
 namespace FFXIVPingMachina.PingMonitor
 {
 
     public class PerConnectionMonitor
     {
-        public event PingSampleDelegate OnPingSample;
+        public delegate void PingSampleDelegate(double RTT, DateTime sampleTime);
 
-        public double CurrentPing { get; private set; }
+        public event ConnectionPingSampleDelegate OnPingSample;
+
+        public ConnectionIdentifier Connection { get; }
+
+        public ConnectionPing CurrentPing { get; private set; }
         public DateTime LastActivity { get; private set; }
         private readonly KeepAliveHandler _keepAliveHandler = new KeepAliveHandler();
         private readonly IPCHandler _ipcHandler = new IPCHandler();
 
-        public PerConnectionMonitor()
+        public PerConnectionMonitor(string connection)
         {
+            Connection = new ConnectionIdentifier(connection);
             _keepAliveHandler.OnPingSample += KeepAliveHandlerOnOnPingSample;
             _ipcHandler.OnPingSample += IpcHandlerOnOnPingSample;
         }
@@ -88,8 +94,14 @@ namespace FFXIVPingMachina.PingMonitor
             _records.Keys.TakeWhile(it => it < windowLeft).ToList().ForEach(it => _records.Remove(it));
 
             // Use the min value in that window as the current ping
-            CurrentPing = _records.Values.Min();
-            OnPingSample?.Invoke(CurrentPing, sampleTime);
+            CurrentPing = new ConnectionPing()
+            {
+                Connection = Connection,
+                Ping = _records.Values.Min(),
+                SampleTime = sampleTime
+            };
+
+            OnPingSample?.Invoke(CurrentPing);
         }
 
         #endregion

@@ -7,7 +7,7 @@ namespace FFXIVPingMachina.PingMonitor.handler
 {
     public class IPCHandler
     {
-        public event PingSampleDelegate OnPingSample;
+        public event PerConnectionMonitor.PingSampleDelegate OnPingSample;
 
         private readonly SortedDictionary<uint, DateTime> _pingRecords = new SortedDictionary<uint, DateTime>();
         private DateTime _pingLastUpdate = DateTime.UtcNow;

@@ -2,17 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using FFXIVPingMachina.FFXIVNetwork.Packets;
+using LibPingMachina.PingMonitor;
 
 namespace FFXIVPingMachina.PingMonitor
 {
-    public delegate void PingSampleDelegate(double RTT, DateTime sampleTime);
+    public delegate void ConnectionPingSampleDelegate(ConnectionPing ping);
 
     public class PacketMonitor
     {
         public static FFXIVClientVersion ClientVersion { get; set; } = FFXIVClientVersion.Unknown;
 
-        public event PingSampleDelegate OnPingSample;
-        public double CurrentPing { get; private set; }
+        public event ConnectionPingSampleDelegate OnPingSample;
+        public ConnectionPing CurrentPing { get; private set; }
 
         private readonly Dictionary<string, PerConnectionMonitor> _connections =
             new Dictionary<string, PerConnectionMonitor>();
@@ -21,7 +22,7 @@ namespace FFXIVPingMachina.PingMonitor
         {
             if (!_connections.TryGetValue(connection, out var monitor))
             {
-                monitor = new PerConnectionMonitor();
+                monitor = new PerConnectionMonitor(connection);
                 monitor.OnPingSample += MonitorOnOnPingSample;
                 _connections[connection] = monitor;
             }
@@ -44,7 +45,7 @@ namespace FFXIVPingMachina.PingMonitor
         {
             if (!_connections.TryGetValue(connection, out var monitor))
             {
-                monitor = new PerConnectionMonitor();
+                monitor = new PerConnectionMonitor(connection);
                 monitor.OnPingSample += MonitorOnOnPingSample;
                 _connections[connection] = monitor;
             }
@@ -70,10 +71,10 @@ namespace FFXIVPingMachina.PingMonitor
                 .Select(it => it.Key).ToList().ForEach(k => _connections.Remove(k));
         }
 
-        private void MonitorOnOnPingSample(double rtt, DateTime sampleTime)
+        private void MonitorOnOnPingSample(ConnectionPing ping)
         {
             CurrentPing = _connections.Select(it => it.Value.CurrentPing).Max();
-            OnPingSample?.Invoke(CurrentPing, sampleTime);
+            OnPingSample?.Invoke(CurrentPing);
         }
     }
 }

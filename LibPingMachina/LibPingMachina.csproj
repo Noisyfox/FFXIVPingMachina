@@ -46,6 +46,8 @@
     <Compile Include="FFXIVNetwork\Packets\Def.cs" />
     <Compile Include="FFXIVNetwork\Packets\Packets.cs" />
     <Compile Include="FFXIVNetwork\Util.cs" />
+    <Compile Include="PingMonitor\ConnectionIdentifier.cs" />
+    <Compile Include="PingMonitor\ConnectionPing.cs" />
     <Compile Include="PingMonitor\handler\IPCHandler.cs" />
     <Compile Include="PingMonitor\handler\KeepAliveHandler.cs" />
     <Compile Include="PingMonitor\PacketMonitor.cs" />
