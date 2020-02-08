@@ -5,7 +5,7 @@ using FFXIVPingMachina.FFXIVNetwork.Packets;
 
 namespace FFXIVPingMachina.PingMonitor
 {
-    public delegate void PingSampleDelegate(double TTL, DateTime sampleTime);
+    public delegate void PingSampleDelegate(double RTT, DateTime sampleTime);
 
     public class PacketMonitor
     {
@@ -70,7 +70,7 @@ namespace FFXIVPingMachina.PingMonitor
                 .Select(it => it.Key).ToList().ForEach(k => _connections.Remove(k));
         }
 
-        private void MonitorOnOnPingSample(double ttl, DateTime sampleTime)
+        private void MonitorOnOnPingSample(double rtt, DateTime sampleTime)
         {
             CurrentPing = _connections.Select(it => it.Value.CurrentPing).Max();
             OnPingSample?.Invoke(CurrentPing, sampleTime);

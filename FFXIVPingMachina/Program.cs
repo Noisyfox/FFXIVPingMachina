@@ -23,9 +23,9 @@ namespace FFXIVPingMachina
             monitor.Stop();
         }
 
-        private static void PmOnOnPingSample(double ttl, DateTime sampleTime)
+        private static void PmOnOnPingSample(double rtt, DateTime sampleTime)
         {
-            Console.Out.WriteLine($"TTL={ttl}.");
+            Console.Out.WriteLine($"RTT={rtt}.");
         }
     }
 

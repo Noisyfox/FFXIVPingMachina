@@ -66,22 +66,22 @@ namespace FFXIVPingMachina.PingMonitor
         private readonly SortedDictionary<long, double> _records = new SortedDictionary<long, double>();
 
         
-        private void KeepAliveHandlerOnOnPingSample(double ttl, DateTime sampleTime)
+        private void KeepAliveHandlerOnOnPingSample(double rtt, DateTime sampleTime)
         {
-            Console.Out.WriteLine($"TTL by KeepAlive={ttl}.");
-            HandleNewSample(ttl, sampleTime);
+            Console.Out.WriteLine($"RTT by KeepAlive={rtt}.");
+            HandleNewSample(rtt, sampleTime);
         }
 
-        private void IpcHandlerOnOnPingSample(double ttl, DateTime sampleTime)
+        private void IpcHandlerOnOnPingSample(double rtt, DateTime sampleTime)
         {
-            Console.Out.WriteLine($"TTL by Ping={ttl}.");
-            HandleNewSample(ttl, sampleTime);
+            Console.Out.WriteLine($"RTT by Ping={rtt}.");
+            HandleNewSample(rtt, sampleTime);
         }
 
-        private void HandleNewSample(double ttl, DateTime sampleTime)
+        private void HandleNewSample(double rtt, DateTime sampleTime)
         {
             var now = sampleTime.EpochMillis();
-            _records[now] = ttl;
+            _records[now] = rtt;
 
             var windowLeft = now - 5 * 1000; // window size = 5s
             // Remove records out of window
