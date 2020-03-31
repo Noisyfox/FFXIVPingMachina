@@ -143,11 +143,11 @@ namespace FFXIVPingMachina.FFXIVNetwork.Packets
                     {
                         Server = new ServerZoneIpcType
                         {
-                            Ping = 0x0200, // updated for 5.18
+                            Ping = 0x012c, // updated for 5.21
                         },
                         Client = new ClientZoneIpcType
                         {
-                            PingHandler = 0x0200, // updated for 5.18
+                            PingHandler = 0x012c, // updated for 5.21
                         }
                     }
                 },
@@ -157,11 +157,11 @@ namespace FFXIVPingMachina.FFXIVNetwork.Packets
                     {
                         Server = new ServerZoneIpcType
                         {
-                            Ping = 0x00da, // updated for 5.11
+                            Ping = 0x00dd, // updated for 5.15
                         },
                         Client = new ClientZoneIpcType
                         {
-                            PingHandler = 0x00da, // updated for 5.11
+                            PingHandler = 0x00dd, // updated for 5.15
                         }
                     }
                 },
