@@ -5,6 +5,7 @@ using FFXIVPingMachina.FFXIVNetwork;
 using FFXIVPingMachina.FFXIVNetwork.Packets;
 using FFXIVPingMachina.PingMonitor.handler;
 using LibPingMachina.PingMonitor;
+using LibPingMachina.PingMonitor.handler;
 
 namespace FFXIVPingMachina.PingMonitor
 {
@@ -13,12 +14,14 @@ namespace FFXIVPingMachina.PingMonitor
     {
         public delegate void PingSampleDelegate(double RTT, DateTime sampleTime);
 
+        public event IPCPingOpCodeDetector.PingOpCodeDetectDelegate OnPingOpCodeDetected;
         public event ConnectionPingSampleDelegate OnPingSample;
 
         public ConnectionIdentifier Connection { get; }
 
         public ConnectionPing CurrentPing { get; private set; }
         public DateTime LastActivity { get; private set; }
+        private readonly IPCPingOpCodeDetector _pingOpCodeDetector = new IPCPingOpCodeDetector();
         private readonly KeepAliveHandler _keepAliveHandler = new KeepAliveHandler();
         private readonly IPCHandler _ipcHandler = new IPCHandler();
 
@@ -27,6 +30,17 @@ namespace FFXIVPingMachina.PingMonitor
             Connection = new ConnectionIdentifier(connection);
             _keepAliveHandler.OnPingSample += KeepAliveHandlerOnOnPingSample;
             _ipcHandler.OnPingSample += IpcHandlerOnOnPingSample;
+
+            _keepAliveHandler.OnClientRecv += _pingOpCodeDetector.ClientRecv;
+            _keepAliveHandler.OnClientSent += _pingOpCodeDetector.ClientSent;
+            _ipcHandler.OnClientRecv += _pingOpCodeDetector.ClientRecv;
+            _ipcHandler.OnClientSent += _pingOpCodeDetector.ClientSent;
+
+            _pingOpCodeDetector.OnPingOpCodeDetected += opCode =>
+            {
+                _ipcHandler.PingOpCode = opCode;
+                OnPingOpCodeDetected?.Invoke(opCode);
+            };
         }
 
         public void MessageSent(long epoch, byte[] message)
@@ -98,7 +112,7 @@ namespace FFXIVPingMachina.PingMonitor
             {
                 Connection = Connection,
                 Ping = _records.Values.Min(),
-                SampleTime = sampleTime
+                SampleTime = sampleTime,
             };
 
             OnPingSample?.Invoke(CurrentPing);

@@ -7,10 +7,16 @@ namespace FFXIVPingMachina.PingMonitor.handler
 {
     public class IPCHandler
     {
+        public delegate void IPCDelegate(FFXIVIpcHeader header, byte[] data, int offset);
+
         public event PerConnectionMonitor.PingSampleDelegate OnPingSample;
+        public event IPCDelegate OnClientSent;
+        public event IPCDelegate OnClientRecv;
 
         private readonly SortedDictionary<uint, DateTime> _pingRecords = new SortedDictionary<uint, DateTime>();
         private DateTime _pingLastUpdate = DateTime.UtcNow;
+
+        public ushort PingOpCode = 0;
 
         public void ClientSent(byte[] data, int offset)
         {
@@ -18,7 +24,8 @@ namespace FFXIVPingMachina.PingMonitor.handler
             var headerLen = Packets.ParseIPCHeader(data, offset, out var pkt);
             //            Console.Out.WriteLine($"FFXIVIpcHeader.Type = 0x{pkt.Type:X4}.");
 
-            if (pkt.Type == CurrentIpcType.Client.PingHandler)
+            OnClientSent?.Invoke(pkt, data, offset + headerLen);
+            if (pkt.Type == PingOpCode)
             {
                 HandleClientPing(data, offset + headerLen);
             }
@@ -30,7 +37,8 @@ namespace FFXIVPingMachina.PingMonitor.handler
             var headerLen = Packets.ParseIPCHeader(data, offset, out var pkt);
             //            Console.Out.WriteLine($"FFXIVIpcHeader.Type = 0x{pkt.Type:X4}.");
 
-            if (pkt.Type == CurrentIpcType.Server.Ping)
+            OnClientRecv?.Invoke(pkt, data, offset + headerLen);
+            if (pkt.Type == PingOpCode)
             {
                 HandleServerPing(data, offset + headerLen);
             }
@@ -51,7 +59,7 @@ namespace FFXIVPingMachina.PingMonitor.handler
             Packets.NaiveParsePacket<FFXIVServerIpcPingData>(data, offset, out var pkt);
             //            Console.Out.WriteLine($"HandleServerPing: Timestamp={pkt.Timestamp - 0x000014D00000000}.");
 
-            var index = (uint) (pkt.Timestamp - 0x000014D00000000);
+            var index = (uint) (pkt.Timestamp - TIMESTAMP_DELTA);
 
             if (_pingRecords.TryGetValue(index, out var time))
             {
@@ -63,19 +71,9 @@ namespace FFXIVPingMachina.PingMonitor.handler
             _pingRecords.Keys.Where(it => it < index).ToList().ForEach(it => _pingRecords.Remove(it));
         }
 
-        private static ZoneIpcType CurrentIpcType
-        {
-            get
-            {
-                var version = PacketMonitor.ClientVersion;
-                if (version == FFXIVClientVersion.Unknown)
-                {
-                    // Fallback to global version
-                    version = FFXIVClientVersion.Global;
-                }
-
-                return ZoneIpcType.ZoneIpcTypes[version];
-            }
-        }
+        /// <summary>
+        /// Difference of ServerPing.TimeStamp - ClientPing.TimeStamp
+        /// </summary>
+        public const ulong TIMESTAMP_DELTA = 0x000014D00000000ul;
     }
 }

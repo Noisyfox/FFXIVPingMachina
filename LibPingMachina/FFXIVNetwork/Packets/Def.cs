@@ -103,71 +103,6 @@ namespace FFXIVPingMachina.FFXIVNetwork.Packets
         public uint UnknownC;
     };
 
-    public enum FFXIVClientVersion
-    {
-        Unknown,
-        Global,
-        CN
-    }
-
-    /**
-    * Server IPC Zone Type Codes.
-    */
-    public class ServerZoneIpcType
-    {
-        public ushort Ping { get; set; }
-    }
-
-    /**
-    * Client IPC Zone Type Codes.
-    */
-    public class ClientZoneIpcType
-    {
-        public ushort PingHandler { get; set; }
-    }
-
-    /// <summary>
-    /// TODO: Use machina OpcodeManager once opcode for Ping is included.
-    /// </summary>
-    public class ZoneIpcType
-    {
-        public ServerZoneIpcType Server { get; set; }
-        public ClientZoneIpcType Client { get; set; }
-
-        public static readonly Dictionary<FFXIVClientVersion, ZoneIpcType> ZoneIpcTypes =
-            new Dictionary<FFXIVClientVersion, ZoneIpcType>
-            {
-                {
-                    FFXIVClientVersion.Global,
-                    new ZoneIpcType
-                    {
-                        Server = new ServerZoneIpcType
-                        {
-                            Ping = 0x012c, // updated for 5.21
-                        },
-                        Client = new ClientZoneIpcType
-                        {
-                            PingHandler = 0x012c, // updated for 5.21
-                        }
-                    }
-                },
-                {
-                    FFXIVClientVersion.CN,
-                    new ZoneIpcType
-                    {
-                        Server = new ServerZoneIpcType
-                        {
-                            Ping = 0x00dd, // updated for 5.15
-                        },
-                        Client = new ClientZoneIpcType
-                        {
-                            PingHandler = 0x00dd, // updated for 5.15
-                        }
-                    }
-                },
-            };
-    }
-
     /**
     * Structural representation of the Ping packate data send by client.
     *
@@ -182,7 +117,7 @@ namespace FFXIVPingMachina.FFXIVNetwork.Packets
         [FieldOffset(0)]
         public uint Timestamp;
         [FieldOffset(4)]
-        unsafe public fixed byte Unknown[20];
+        public unsafe fixed byte Unknown[20];
     }
 
     /**
@@ -199,6 +134,6 @@ namespace FFXIVPingMachina.FFXIVNetwork.Packets
         [FieldOffset(0)]
         public ulong Timestamp;
         [FieldOffset(8)]
-        unsafe public fixed byte Unknown[24];
+        public unsafe fixed byte Unknown[24];
     }
 }

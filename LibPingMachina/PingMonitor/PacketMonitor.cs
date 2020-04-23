@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using FFXIVPingMachina.FFXIVNetwork.Packets;
 using LibPingMachina.PingMonitor;
+using LibPingMachina.PingMonitor.handler;
 
 namespace FFXIVPingMachina.PingMonitor
 {
@@ -10,8 +11,7 @@ namespace FFXIVPingMachina.PingMonitor
 
     public class PacketMonitor
     {
-        public static FFXIVClientVersion ClientVersion { get; set; } = FFXIVClientVersion.Unknown;
-
+        public event IPCPingOpCodeDetector.PingOpCodeDetectDelegate OnPingOpCodeDetected;
         public event ConnectionPingSampleDelegate OnPingSample;
         public ConnectionPing CurrentPing { get; private set; }
 
@@ -24,6 +24,7 @@ namespace FFXIVPingMachina.PingMonitor
             {
                 monitor = new PerConnectionMonitor(connection);
                 monitor.OnPingSample += MonitorOnOnPingSample;
+                monitor.OnPingOpCodeDetected += code => OnPingOpCodeDetected?.Invoke(code);
                 _connections[connection] = monitor;
             }
 

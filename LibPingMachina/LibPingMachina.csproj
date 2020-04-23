@@ -49,6 +49,7 @@
     <Compile Include="PingMonitor\ConnectionIdentifier.cs" />
     <Compile Include="PingMonitor\ConnectionPing.cs" />
     <Compile Include="PingMonitor\handler\IPCHandler.cs" />
+    <Compile Include="PingMonitor\handler\IPCPingOpCodeDetector.cs" />
     <Compile Include="PingMonitor\handler\KeepAliveHandler.cs" />
     <Compile Include="PingMonitor\PacketMonitor.cs" />
     <Compile Include="PingMonitor\PerConnectionMonitor.cs" />

@@ -5,7 +5,11 @@ namespace FFXIVPingMachina.PingMonitor.handler
 {
     public class KeepAliveHandler
     {
+        public delegate void KeepAliveDelegate(FFXIVKeepAliveData keepAlive);
+
         public event PerConnectionMonitor.PingSampleDelegate OnPingSample;
+        public event KeepAliveDelegate OnClientSent;
+        public event KeepAliveDelegate OnClientRecv;
 
         private uint _currentId;
         private DateTime _lastKeepAliveSent = DateTime.Now;
@@ -16,6 +20,7 @@ namespace FFXIVPingMachina.PingMonitor.handler
             Packets.NaiveParsePacket<FFXIVKeepAliveData>(data, offset, out var pkt);
             //            Console.Out.WriteLine($"KeepAliveHandler.ClientSent: ID={pkt.Id}, Timestamp={pkt.Timestamp}.");
 
+            OnClientSent?.Invoke(pkt);
             _currentId = pkt.Id;
             _lastKeepAliveSent = DateTime.UtcNow;
         }
@@ -26,6 +31,7 @@ namespace FFXIVPingMachina.PingMonitor.handler
             Packets.NaiveParsePacket<FFXIVKeepAliveData>(data, offset, out var pkt);
             //            Console.Out.WriteLine($"KeepAliveHandler.ClientRecv: ID={pkt.Id}, Timestamp={pkt.Timestamp}.");
 
+            OnClientRecv?.Invoke(pkt);
             if (pkt.Id != _currentId)
             {
                 return;
