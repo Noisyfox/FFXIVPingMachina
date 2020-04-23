@@ -126,6 +126,57 @@ namespace LibPingMachina.PingMonitor.handler
             }
         }
 
+        private class OpCodeStatistic
+        {
+            private class PingIndex
+            {
+                public int SendCount;
+                public int RecvCount;
+
+                /// <summary>
+                /// Let α = the angle between vector A(1, 1) and B(Send, Recv),
+                /// Then bias = Cos(α)^2 * 2 - 1
+                ///
+                /// Ideally a Ping-pong protocol should has SendCount == RecvCount, the
+                /// Bias is a measure of the difference between Send and Recv. If Send == Recv then Bias == 1.0,
+                /// and if any of the Send or Recv is 0, Bias == 0.
+                /// </summary>
+                private double Bias => 2 * SendCount * RecvCount / (Math.Pow(SendCount, 2) + Math.Pow(RecvCount, 2));
+
+                // Confidence = 1 / ((opCode occurence - 1.5) ^ 2) * Bias
+                /// <summary>
+                /// Ideally each index should have only 1 send and 1 recv pkt, so the more the total occurence is
+                /// greater than 2, the less likely this will be the ping pkt.
+                /// </summary>
+                public double Confidence => Math.Pow(1.0d / (SendCount + RecvCount - 1.5), 2) * Bias;
+            }
+
+            private Dictionary<ulong, PingIndex> _indexes = new Dictionary<ulong, PingIndex>();
+
+            private PingIndex GetIndex(ulong index)
+            {
+                if (!_indexes.TryGetValue(index, out var i))
+                {
+                    i = new PingIndex();
+                    _indexes.Add(index, i);
+                }
+
+                return i;
+            }
+
+            public void OnSend(ulong index)
+            {
+                GetIndex(index).SendCount++;
+            }
+
+            public void OnRecv(ulong index)
+            {
+                GetIndex(index).RecvCount++;
+            }
+
+            public double Confidence => _indexes.Values.Select(it => it.Confidence).Average();
+        }
+
         private void DetectPingPkt()
         {
             long head;
@@ -138,8 +189,7 @@ namespace LibPingMachina.PingMonitor.handler
                 head = _bufferPointer - _buffer.Length;
             }
 
-            var indexMap = new Dictionary<ulong, int>(); // pkt index -> occurrence count
-            var opCodeMap = new Dictionary<ushort, HashSet<ulong>>(); // OpCode -> pkt index
+            var statistics = new Dictionary<ushort, OpCodeStatistic>();
             for (long i = _bufferPointer - 1; i >= head; i--)
             {
                 ref var currBuf = ref _buffer[i & BufferMask];
@@ -148,50 +198,26 @@ namespace LibPingMachina.PingMonitor.handler
                     break;
                 }
 
-                ulong index = currBuf.PingTimeStamp;
-                if (!currBuf.ClientSent)
                 {
-                    index -= IPCHandler.TIMESTAMP_DELTA;
-                }
 
-                {
-                    if (!opCodeMap.TryGetValue(currBuf.OpCode, out var s))
+                    if (!statistics.TryGetValue(currBuf.OpCode, out var s))
                     {
-                        s = new HashSet<ulong>();
-                        opCodeMap.Add(currBuf.OpCode, s);
+                        s = new OpCodeStatistic();
+                        statistics.Add(currBuf.OpCode, s);
                     }
 
-                    s.Add(index);
-                }
-                {
-                    if (!indexMap.TryGetValue(index, out var c))
+                    if (currBuf.ClientSent)
                     {
-                        c = 0;
+                        s.OnSend(currBuf.PingTimeStamp);
                     }
-
-                    indexMap[index] = c + 1;
+                    else
+                    {
+                        s.OnRecv(currBuf.PingTimeStamp - IPCHandler.TIMESTAMP_DELTA);
+                    }
                 }
             }
 
-            indexMap = indexMap
-                .Where(kvp => kvp.Value > 1)
-                .ToDictionary(i => i.Key, i => i.Value);
-
-            // Confidence = 1 / ((opCode occurence - 1.5) ^ 2)
-            var confidence = opCodeMap.ToDictionary(i => i.Key, i =>
-            {
-                double c = i.Value.Select(it =>
-                {
-                    if (indexMap.TryGetValue(it, out var occur))
-                    {
-                        return Math.Pow(1.0d / (occur - 1.5), 2);
-                    }
-
-                    return 0;
-                }).Sum();
-
-                return c / i.Value.Count;
-            });
+            var confidence = statistics.ToDictionary(it => it.Key, it => it.Value.Confidence);
 
             if (confidence.Count > 0)
             {
