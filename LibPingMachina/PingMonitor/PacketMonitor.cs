@@ -22,9 +22,7 @@ namespace FFXIVPingMachina.PingMonitor
         {
             if (!_connections.TryGetValue(connection, out var monitor))
             {
-                monitor = new PerConnectionMonitor(connection);
-                monitor.OnPingSample += MonitorOnOnPingSample;
-                monitor.OnPingOpCodeDetected += code => OnPingOpCodeDetected?.Invoke(code);
+                monitor = CreatePerConnectionMonitor(connection);
                 _connections[connection] = monitor;
             }
 
@@ -46,8 +44,7 @@ namespace FFXIVPingMachina.PingMonitor
         {
             if (!_connections.TryGetValue(connection, out var monitor))
             {
-                monitor = new PerConnectionMonitor(connection);
-                monitor.OnPingSample += MonitorOnOnPingSample;
+                monitor = CreatePerConnectionMonitor(connection);
                 _connections[connection] = monitor;
             }
 
@@ -63,6 +60,15 @@ namespace FFXIVPingMachina.PingMonitor
             {
                 CheckActivity();
             }
+        }
+
+        private PerConnectionMonitor CreatePerConnectionMonitor(string connection)
+        {
+            var monitor = new PerConnectionMonitor(connection);
+            monitor.OnPingSample += MonitorOnOnPingSample;
+            monitor.OnPingOpCodeDetected += code => OnPingOpCodeDetected?.Invoke(code);
+
+            return monitor;
         }
 
         private void CheckActivity()
