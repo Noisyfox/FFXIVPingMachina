@@ -66,6 +66,11 @@ namespace LibPingMachina.PingMonitor.handler
                 }
             }
 
+            if (pkt.Timestamp == 0)
+            {
+                return;
+            }
+
             lock (_buffer)
             {
                 ref var slot = ref _buffer[_bufferPointer & BufferMask];
@@ -92,6 +97,11 @@ namespace LibPingMachina.PingMonitor.handler
                 {
                     return;
                 }
+            }
+
+            if (pkt.Timestamp <= IPCHandler.TIMESTAMP_DELTA)
+            {
+                return;
             }
 
             lock (_buffer)
