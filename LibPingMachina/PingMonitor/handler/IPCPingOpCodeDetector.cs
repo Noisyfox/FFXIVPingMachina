@@ -227,7 +227,10 @@ namespace LibPingMachina.PingMonitor.handler
                 }
             }
 
-            var confidence = statistics.ToDictionary(it => it.Key, it => it.Value.Confidence);
+            var confidence = statistics
+                .ToDictionary(it => it.Key, it => it.Value.Confidence)
+                .Where(it => it.Value > 0)
+                .ToList();
 
             if (confidence.Count > 0)
             {
