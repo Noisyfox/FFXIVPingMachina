@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Net;
+using Machina.Infrastructure;
 
 namespace LibPingMachina.PingMonitor
 {
@@ -54,6 +56,12 @@ namespace LibPingMachina.PingMonitor
         public override string ToString()
         {
             return _connection;
+        }
+
+        internal static string GetStringIdentifier(TCPConnection connection)
+        {
+            return $"{new IPAddress(connection.LocalIP)}:{connection.LocalPort}=>" +
+                   $"{new IPAddress(connection.RemoteIP)}:{connection.RemotePort}";
         }
     }
 }

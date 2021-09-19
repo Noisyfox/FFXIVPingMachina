@@ -4,6 +4,7 @@ using System.Linq;
 using FFXIVPingMachina.FFXIVNetwork.Packets;
 using LibPingMachina.PingMonitor;
 using LibPingMachina.PingMonitor.handler;
+using Machina.Infrastructure;
 
 namespace FFXIVPingMachina.PingMonitor
 {
@@ -18,12 +19,13 @@ namespace FFXIVPingMachina.PingMonitor
         private readonly Dictionary<string, PerConnectionMonitor> _connections =
             new Dictionary<string, PerConnectionMonitor>();
 
-        public void MessageSent(string connection, long epoch, byte[] message)
+        public void MessageSent(TCPConnection connection, long epoch, byte[] message)
         {
-            if (!_connections.TryGetValue(connection, out var monitor))
+            var id = ConnectionIdentifier.GetStringIdentifier(connection);
+            if (!_connections.TryGetValue(id, out var monitor))
             {
-                monitor = CreatePerConnectionMonitor(connection);
-                _connections[connection] = monitor;
+                monitor = CreatePerConnectionMonitor(id);
+                _connections[id] = monitor;
             }
 
             try
@@ -40,12 +42,13 @@ namespace FFXIVPingMachina.PingMonitor
             }
         }
 
-        public void MessageReceived(string connection, long epoch, byte[] message)
+        public void MessageReceived(TCPConnection connection, long epoch, byte[] message)
         {
-            if (!_connections.TryGetValue(connection, out var monitor))
+            var id = ConnectionIdentifier.GetStringIdentifier(connection);
+            if (!_connections.TryGetValue(id, out var monitor))
             {
-                monitor = CreatePerConnectionMonitor(connection);
-                _connections[connection] = monitor;
+                monitor = CreatePerConnectionMonitor(id);
+                _connections[id] = monitor;
             }
 
             try
