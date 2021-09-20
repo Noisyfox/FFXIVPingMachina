@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using FFXIVPingMachina.FFXIVNetwork.Packets;
+using LibPingMachina.PingMonitor.handler;
 
 namespace FFXIVPingMachina.PingMonitor.handler
 {
@@ -16,7 +17,7 @@ namespace FFXIVPingMachina.PingMonitor.handler
         private readonly SortedDictionary<uint, DateTime> _pingRecords = new SortedDictionary<uint, DateTime>();
         private DateTime _pingLastUpdate = DateTime.UtcNow;
 
-        public ushort PingOpCode = 0;
+        public IPCPingOpCodeDetector.PingOpCode PingOpCode = new IPCPingOpCodeDetector.PingOpCode(0, 0);
 
         public void ClientSent(byte[] data, int offset)
         {
@@ -25,7 +26,7 @@ namespace FFXIVPingMachina.PingMonitor.handler
             //            Console.Out.WriteLine($"FFXIVIpcHeader.Type = 0x{pkt.Type:X4}.");
 
             OnClientSent?.Invoke(pkt, data, offset + headerLen);
-            if (pkt.Type == PingOpCode)
+            if (pkt.Type == PingOpCode.Client)
             {
                 HandleClientPing(data, offset + headerLen);
             }
@@ -38,7 +39,7 @@ namespace FFXIVPingMachina.PingMonitor.handler
             //            Console.Out.WriteLine($"FFXIVIpcHeader.Type = 0x{pkt.Type:X4}.");
 
             OnClientRecv?.Invoke(pkt, data, offset + headerLen);
-            if (pkt.Type == PingOpCode)
+            if (pkt.Type == PingOpCode.Server)
             {
                 HandleServerPing(data, offset + headerLen);
             }
