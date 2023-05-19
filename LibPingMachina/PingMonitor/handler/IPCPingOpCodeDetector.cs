@@ -17,6 +17,14 @@ namespace LibPingMachina.PingMonitor.handler
 
         public event PingOpCodeDetectDelegate OnPingOpCodeDetected;
 
+        private readonly bool _useDeucalion;
+
+        public IPCPingOpCodeDetector(bool useDeucalion)
+        {
+            _useDeucalion = useDeucalion;
+        }
+
+
         public class PingOpCode
         {
             public ushort Client { get; }
@@ -254,7 +262,9 @@ namespace LibPingMachina.PingMonitor.handler
             for (long i = _bufferPointer - 1; i >= head; i--)
             {
                 ref var currBuf = ref _buffer[i & BufferMask];
-                if (Math.Abs(currBuf.TimeStamp - _lastKeepAliveTimeStamp) > TimeWindow)
+
+                // Deucalion does not capture keep alive package, so we have to ignore this check
+                if (!_useDeucalion && Math.Abs(currBuf.TimeStamp - _lastKeepAliveTimeStamp) > TimeWindow)
                 {
                     break;
                 }

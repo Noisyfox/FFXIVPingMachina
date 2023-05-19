@@ -19,6 +19,13 @@ namespace FFXIVPingMachina.PingMonitor
         private readonly Dictionary<string, PerConnectionMonitor> _connections =
             new Dictionary<string, PerConnectionMonitor>();
 
+        private readonly bool _useDeucalion;
+
+        public PacketMonitor(bool useDeucalion)
+        {
+            _useDeucalion = useDeucalion;
+        }
+
         public void MessageSent(TCPConnection connection, long epoch, byte[] message)
         {
             var id = ConnectionIdentifier.GetStringIdentifier(connection);
@@ -67,7 +74,7 @@ namespace FFXIVPingMachina.PingMonitor
 
         private PerConnectionMonitor CreatePerConnectionMonitor(string connection)
         {
-            var monitor = new PerConnectionMonitor(connection);
+            var monitor = new PerConnectionMonitor(connection, _useDeucalion);
             monitor.OnPingSample += MonitorOnOnPingSample;
             monitor.OnPingOpCodeDetected += code => OnPingOpCodeDetected?.Invoke(code);
 

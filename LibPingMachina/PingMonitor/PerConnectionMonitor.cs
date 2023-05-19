@@ -21,12 +21,16 @@ namespace FFXIVPingMachina.PingMonitor
 
         public ConnectionPing CurrentPing { get; private set; }
         public DateTime LastActivity { get; private set; }
-        private readonly IPCPingOpCodeDetector _pingOpCodeDetector = new IPCPingOpCodeDetector();
+        private readonly bool _useDeucalion;
+        private readonly IPCPingOpCodeDetector _pingOpCodeDetector;
         private readonly KeepAliveHandler _keepAliveHandler = new KeepAliveHandler();
         private readonly IPCHandler _ipcHandler = new IPCHandler();
 
-        public PerConnectionMonitor(string connection)
+        public PerConnectionMonitor(string connection, bool useDeucalion)
         {
+            _useDeucalion = useDeucalion;
+            _pingOpCodeDetector = new IPCPingOpCodeDetector(useDeucalion);
+
             Connection = new ConnectionIdentifier(connection);
             _keepAliveHandler.OnPingSample += KeepAliveHandlerOnOnPingSample;
             _ipcHandler.OnPingSample += IpcHandlerOnOnPingSample;
@@ -59,6 +63,12 @@ namespace FFXIVPingMachina.PingMonitor
                 case ClientSegmentType.IPC:
                     _ipcHandler.ClientSent(message, headerLen);
                     break;
+                case ClientSegmentType.IPCDeucalion:
+                    if (_useDeucalion)
+                    {
+                        _ipcHandler.ClientSent(message, headerLen);
+                    }
+                    break;
             }
         }
 
@@ -77,6 +87,12 @@ namespace FFXIVPingMachina.PingMonitor
                     break;
                 case ServerSegmentType.IPC:
                     _ipcHandler.ClientRecv(message, headerLen);
+                    break;
+                case ServerSegmentType.IPCDeucalion:
+                    if (_useDeucalion)
+                    {
+                        _ipcHandler.ClientRecv(message, headerLen);
+                    }
                     break;
             }
         }

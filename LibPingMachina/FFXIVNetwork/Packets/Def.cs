@@ -43,12 +43,14 @@ namespace FFXIVPingMachina.FFXIVNetwork.Packets
 
     public enum ClientSegmentType : ushort
     {
+        IPCDeucalion = 0,  // When using Deucalion, the segment type will always be 0
         IPC = 3, // Game packets (IPC)
         KeepAlive = 7,
     }
 
     public enum ServerSegmentType : ushort
     {
+        IPCDeucalion = 0,  // When using Deucalion, the segment type will always be 0
         IPC = 3,
         KeepAlive = 8,
     }
