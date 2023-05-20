@@ -8,6 +8,9 @@ namespace LibPingMachina.PingMonitor
 
         public double Ping { get; set; }
 
+        /// <summary>
+        /// Time when this Ping was sampled, in UTC
+        /// </summary>
         public DateTime SampleTime { get; set; }
 
         public int CompareTo(ConnectionPing other)

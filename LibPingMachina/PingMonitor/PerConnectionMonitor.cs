@@ -128,7 +128,7 @@ namespace FFXIVPingMachina.PingMonitor
             {
                 Connection = Connection,
                 Ping = _records.Values.Min(),
-                SampleTime = sampleTime,
+                SampleTime = sampleTime.ToUniversalTime(),
             };
 
             OnPingSample?.Invoke(CurrentPing);
