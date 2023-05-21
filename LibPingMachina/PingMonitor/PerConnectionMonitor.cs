@@ -21,14 +21,12 @@ namespace FFXIVPingMachina.PingMonitor
 
         public ConnectionPing CurrentPing { get; private set; }
         public DateTime LastActivity { get; private set; }
-        private readonly IPCPingOpCodeDetector _pingOpCodeDetector;
+        private readonly IPCPingOpCodeDetector _pingOpCodeDetector = new IPCPingOpCodeDetector();
         private readonly KeepAliveHandler _keepAliveHandler = new KeepAliveHandler();
         private readonly IPCHandler _ipcHandler = new IPCHandler();
 
-        public PerConnectionMonitor(string connection, bool useDeucalion)
+        public PerConnectionMonitor(string connection)
         {
-            _pingOpCodeDetector = new IPCPingOpCodeDetector(useDeucalion);
-
             Connection = new ConnectionIdentifier(connection);
             _keepAliveHandler.OnPingSample += KeepAliveHandlerOnOnPingSample;
             _ipcHandler.OnPingSample += IpcHandlerOnOnPingSample;
