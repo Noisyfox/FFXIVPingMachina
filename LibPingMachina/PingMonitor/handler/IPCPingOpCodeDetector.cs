@@ -100,7 +100,7 @@ namespace LibPingMachina.PingMonitor.handler
             Packets.NaiveParsePacket<FFXIVClientIpcPingData>(data, offset, out var pkt);
             unsafe
             {
-                if (!IsAllZeros(pkt.Unknown, 20))
+                if (!IsAllZeros(pkt.Unknown2, 6))
                 {
                     return;
                 }

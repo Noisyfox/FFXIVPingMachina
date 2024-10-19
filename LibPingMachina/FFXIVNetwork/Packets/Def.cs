@@ -106,18 +106,22 @@ namespace FFXIVPingMachina.FFXIVNetwork.Packets
     /**
     * Structural representation of the Ping packate data send by client.
     *
-    * 0               4                 24
-    * +---------------+-----------------+
-    * |   timestamp   |  unknown_zero   |
-    * +---------------+-----------------+
+    * 0               4           6             12          32
+    * +---------------+-----------+--------------+-----------+
+    * |   timestamp   |  unknown  | unknown_zero |  unknown  |
+    * +---------------+-----------+--------------+-----------+
     */
-    [StructLayout(LayoutKind.Explicit, Size = 24)]
+    [StructLayout(LayoutKind.Explicit, Size = 32)]
     public struct FFXIVClientIpcPingData
     {
         [FieldOffset(0)]
         public uint Timestamp;
         [FieldOffset(4)]
-        public unsafe fixed byte Unknown[20];
+        public unsafe fixed byte Unknown1[2];
+        [FieldOffset(6)]
+        public unsafe fixed byte Unknown2[6];
+        [FieldOffset(12)]
+        public unsafe fixed byte Unknown3[20];
     }
 
     /**
